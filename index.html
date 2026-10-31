@@ -1,250 +1,364 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Smart Attendance System</title>
-  
-  <!-- Fast QR Scanner Library -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Gourav Project Pvt Ltd — Attendance & Management Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-
-  <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #eef2f6; display: flex; justify-content: center; padding: 15px 10px; margin: 0; }
-    .card { background: white; padding: 20px; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 420px; }
-    h2 { text-align: center; color: #1a73e8; margin-top: 0; }
-    .step-indicator { text-align: center; font-size: 13px; font-weight: bold; color: #5f6368; margin-bottom: 15px; }
-
-    label { font-size: 13px; font-weight: 600; color: #444; display: block; margin-top: 10px; text-align: left; }
-    input { width: 100%; padding: 12px; margin-top: 4px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 15px; outline: none; }
-    input:focus { border-color: #1a73e8; }
-
-    .btn { width: 100%; padding: 14px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-    .btn:active { background: #1557b0; }
-    .btn-selfie { background: #0b8043; }
-    .btn-secondary { background: #6c757d; margin-top: 8px; }
-
-    #reader { width: 100%; margin-top: 15px; border-radius: 10px; overflow: hidden; }
-    
-    /* Selfie Camera Preview */
-    #selfie-wrapper { display: none; width: 100%; margin-top: 15px; text-align: center; }
-    #selfie-video { width: 100%; height: 260px; object-fit: cover; border-radius: 10px; background: #000; transform: scaleX(-1); }
-    #selfie-preview { display: none; width: 100%; height: 260px; object-fit: cover; border-radius: 10px; margin-top: 10px; }
-
-    #status-box { margin-top: 15px; padding: 12px; font-size: 14px; border-radius: 8px; display: none; font-weight: bold; text-align: center; line-height: 1.4; }
-    .status-info { background: #e8f0fe; color: #1a73e8; display: block !important; }
-    .status-success { background: #e6f4ea; color: #137333; display: block !important; }
-    .status-error { background: #fce8e6; color: #c5221f; display: block !important; }
-    .hidden { display: none !important; }
-  </style>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
 
-  <div class="card">
-    <h2>Smart Attendance</h2>
-    <div class="step-indicator" id="step-txt">चरण 1: अपनी जानकारी भरें</div>
-
-    <div id="status-box"></div>
-
-    <!-- STEP 1: FORM -->
-    <div id="section-form">
-      <label>कर्मचारी ID (Login ID):</label>
-      <input type="text" id="emp-id" placeholder="उदा. EMP001" value="EMP001">
-
-      <label>कर्मचारी का पूरा नाम:</label>
-      <input type="text" id="emp-name" placeholder="अपना नाम लिखें" value="Rahul Sharma">
-
-      <label>Google / Gmail ID:</label>
-      <input type="email" id="emp-gmail" placeholder="example@gmail.com" value="rahul@gmail.com">
-
-      <button type="button" class="btn" onclick="startQRStep()">📷 QR Code स्कैन करें</button>
-    </div>
-
-    <!-- STEP 2: QR CODE SCANNER -->
-    <div id="section-qr" class="hidden">
-      <div id="reader"></div>
-      <button type="button" class="btn btn-secondary" onclick="resetAll()">रद्द करें</button>
-    </div>
-
-    <!-- STEP 3: SELFIE CAPTURE -->
-    <div id="section-selfie" class="hidden">
-      <div id="selfie-wrapper">
-        <video id="selfie-video" autoplay playsinline muted></video>
-        <canvas id="selfie-canvas" style="display: none;"></canvas>
-        <img id="selfie-preview" alt="Captured Selfie">
+  <!-- Header -->
+  <header id="global-header" class="hidden bg-slate-900 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-extrabold text-white text-sm shadow">GP</div>
+        <div>
+          <h1 class="text-[11px] font-semibold uppercase text-slate-300 tracking-wider">Gourav Project Pvt Ltd</h1>
+          <p id="nav-user-name" class="text-sm font-bold truncate max-w-[170px] text-white">Employee</p>
+        </div>
       </div>
-      <button type="button" class="btn btn-selfie" id="snap-btn" onclick="takeSelfie()">🤳 फोटो खींचें (Capture Photo)</button>
-      <button type="button" class="btn hidden" id="submit-btn" onclick="getGPSAndSubmitAttendance()">📤 उपस्थिति दर्ज करें</button>
-      <button type="button" class="btn btn-secondary" onclick="resetAll()">रद्द करें</button>
+      <div class="flex items-center space-x-2">
+        <span id="nav-user-role" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700">EMP</span>
+        <button onclick="logout()" class="text-xs bg-slate-800 hover:bg-red-600 px-3 py-1.5 rounded-lg font-medium transition border border-slate-700">Exit</button>
+      </div>
     </div>
+  </header>
 
+  <main class="flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-center">
+
+    <!-- Toast Notification Box -->
+    <div id="toast-box" class="hidden fixed top-4 left-1/2 -translate-x-1/2 w-11/12 max-w-sm z-50 p-3 rounded-xl shadow-xl text-xs font-semibold flex items-center justify-between transition-all"></div>
+
+    <!-- 1. LOGIN SECTION -->
+    <section id="section-login" class="w-full">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 md:p-8">
+        <div class="text-center mb-6">
+          <div class="inline-flex w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-600 items-center justify-center shadow-lg text-white text-xl font-extrabold mb-3">GP</div>
+          <h2 class="text-lg font-bold tracking-tight text-slate-900 uppercase">Gourav Project Pvt Ltd</h2>
+          <p class="text-xs text-slate-500 mt-1 uppercase font-semibold">Attendance & Advance Portal</p>
+        </div>
+        <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Login ID</label>
+            <input type="text" id="login-id" required autocomplete="username" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter Login ID">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+            <input type="password" id="login-password" required autocomplete="current-password" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••">
+          </div>
+          <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm shadow-md transition flex items-center justify-center">Sign In</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 2. DASHBOARD SECTION -->
+    <section id="section-dashboard" class="hidden w-full space-y-4">
+      <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 text-white rounded-2xl p-5 shadow-lg border border-slate-700">
+        <div class="flex items-start justify-between">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-500/20 text-blue-300 border border-blue-400/30 mb-2" id="dash-emp-id">EMP-00</span>
+            <h2 id="dash-emp-name" class="text-lg font-bold text-white tracking-tight">Employee Name</h2>
+            <p id="dash-emp-desig" class="text-xs text-slate-300 font-medium">Designation</p>
+          </div>
+          <div class="text-right">
+            <span id="dash-emp-dept" class="text-xs font-semibold text-slate-300 block">Department</span>
+            <span id="dash-emp-loc" class="inline-flex items-center text-[11px] text-slate-400 mt-1">📍 Head Office</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attendance Punch Cards (IN & OUT) -->
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="startAttendanceFlow('IN')" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white p-4 rounded-2xl shadow-md text-left transition transform active:scale-98">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl mb-2">🟢</div>
+          <h3 class="font-bold text-sm">Punch IN</h3>
+          <p class="text-[11px] text-emerald-100">Scan QR & Selfie</p>
+        </button>
+
+        <button onclick="startAttendanceFlow('OUT')" class="bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 text-white p-4 rounded-2xl shadow-md text-left transition transform active:scale-98">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl mb-2">🔴</div>
+          <h3 class="font-bold text-sm">Punch OUT</h3>
+          <p class="text-[11px] text-rose-100">Scan QR & Selfie</p>
+        </button>
+      </div>
+
+      <!-- Quick Action Modules -->
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="openAdvanceApplicationModal()" class="bg-white hover:bg-slate-50 border border-slate-200 p-4 rounded-2xl shadow-sm text-left flex flex-col justify-between">
+          <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl mb-3">💵</div>
+          <div><h3 class="font-bold text-sm">Advance Payment</h3><p class="text-[11px] text-slate-500">Apply & Balance</p></div>
+        </button>
+
+        <button onclick="loadAttendanceHistoryView()" class="bg-white hover:bg-slate-50 border border-slate-200 p-4 rounded-2xl shadow-sm text-left flex flex-col justify-between">
+          <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl mb-3">📅</div>
+          <div><h3 class="font-bold text-sm">Attendance History</h3><p class="text-[11px] text-slate-500">Daily Log</p></div>
+        </button>
+
+        <button id="btn-admin-tab" onclick="openAdminDashboard()" class="hidden col-span-2 bg-gradient-to-r from-slate-800 to-slate-900 text-white p-3.5 rounded-2xl shadow text-left flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-lg">🛡️</div>
+            <div><h3 class="font-bold text-xs uppercase">Admin Management Panel</h3><p class="text-[10px] text-slate-400">Approvals & Company Reports</p></div>
+          </div>
+          <span class="text-slate-400 font-bold">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. ATTENDANCE & CAMERA SCANNER SECTION -->
+    <section id="section-attendance" class="hidden w-full space-y-4">
+      <div class="flex items-center justify-between">
+        <button onclick="cancelAttendanceFlow()" class="text-xs text-slate-600 font-semibold px-3 py-1.5 rounded-lg bg-slate-200">← Back</button>
+        <span id="punch-type-badge" class="text-xs font-bold uppercase text-blue-600 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-md">Punch: IN</span>
+      </div>
+
+      <!-- Step 1: Scan QR Code -->
+      <div id="attendance-step-1" class="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 space-y-3">
+        <div class="text-center">
+          <h2 class="font-bold text-slate-800 text-base">Step 1: Scan Employee QR</h2>
+          <p class="text-xs text-slate-500">Align rear camera over the ID Card QR code</p>
+        </div>
+        <div id="qr-reader" class="w-full rounded-xl overflow-hidden bg-black aspect-square"></div>
+      </div>
+
+      <!-- Step 2: Employee Verified + Selfie Capture -->
+      <div id="attendance-step-2" class="hidden bg-white rounded-2xl shadow-lg border border-slate-200 p-4 space-y-4">
+        <!-- Step 5: Automatically Display Employee Details -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3.5 text-xs space-y-1.5">
+          <div class="flex justify-between"><span class="text-slate-500">Emp ID:</span><span id="verified-emp-id" class="font-bold text-slate-800">-</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Name:</span><span id="verified-emp-name" class="font-bold text-slate-800">-</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Dept & Desig:</span><span id="verified-emp-dept" class="font-medium text-slate-700">-</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Mobile:</span><span id="verified-emp-mobile" class="font-mono text-slate-700">-</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Status:</span><span id="verified-emp-status" class="font-bold text-emerald-600">ACTIVE</span></div>
+        </div>
+
+        <div class="text-center">
+          <h2 class="font-bold text-slate-800 text-base">Step 2: Live Selfie Photo</h2>
+          <p class="text-xs text-slate-500">Look straight into the front camera</p>
+        </div>
+
+        <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden">
+          <video id="selfie-video" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
+          <canvas id="selfie-canvas" class="hidden"></canvas>
+        </div>
+
+        <button type="button" onclick="captureSelfieAndProceed()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+          <span>📸 Snap Selfie & Submit Attendance</span>
+        </button>
+      </div>
+
+      <!-- Step 3: Success Confirmation -->
+      <div id="attendance-step-3" class="hidden bg-white rounded-2xl shadow-xl border border-emerald-200 p-6 text-center space-y-4">
+        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl font-extrabold shadow-inner">✓</div>
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">Attendance Recorded!</h2>
+          <p class="text-xs text-emerald-600 font-semibold mt-0.5">Verified & Saved in Cloud</p>
+        </div>
+        <img id="succ-img" class="w-24 h-24 rounded-full object-cover mx-auto border-2 border-emerald-400 shadow-md">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-left space-y-2">
+          <div class="flex justify-between"><span class="text-slate-500">Employee:</span><span id="succ-name" class="font-bold text-slate-800">-</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Emp ID:</span><span id="succ-id" class="font-mono text-slate-800">-</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Punch:</span><span id="succ-type" class="font-bold text-blue-700">-</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Timestamp:</span><span id="succ-time" class="font-mono text-slate-800">-</span></div>
+        </div>
+        <button onclick="cancelAttendanceFlow()" class="w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl">Return to Dashboard</button>
+      </div>
+    </section>
+
+    <!-- 4. ADVANCE PAYMENT SECTION -->
+    <section id="section-advance" class="hidden w-full space-y-4">
+      <div class="flex items-center justify-between">
+        <button onclick="showSection('section-dashboard')" class="text-xs text-slate-600 font-semibold px-3 py-1.5 rounded-lg bg-slate-200">← Back</button>
+        <span class="text-xs font-bold uppercase text-slate-700">Advance Ledger</span>
+      </div>
+
+      <!-- Summary Balance Cards -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-center">
+          <p class="text-[10px] text-slate-500 font-medium">Approved</p>
+          <p id="adv-stat-approved" class="text-xs font-bold text-slate-800 mt-1">₹0</p>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-center">
+          <p class="text-[10px] text-slate-500 font-medium">Repaid</p>
+          <p id="adv-stat-repaid" class="text-xs font-bold text-emerald-600 mt-1">₹0</p>
+        </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm text-center">
+          <p class="text-[10px] text-slate-500 font-medium">Balance</p>
+          <p id="adv-stat-balance" class="text-xs font-bold text-rose-600 mt-1">₹0</p>
+        </div>
+      </div>
+
+      <!-- Application Form -->
+      <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-5">
+        <h3 class="font-bold text-xs uppercase text-slate-700 mb-3">Apply For Advance Payment</h3>
+        <form onsubmit="submitAdvanceApplication(event)" class="space-y-3">
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Requested Amount (₹) *</label><input type="number" id="adv-amount" required min="100" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl" placeholder="e.g. 5000"></div>
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Reason / Purpose *</label><textarea id="adv-purpose" required rows="2" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl" placeholder="Medical, urgent expense..."></textarea></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="block text-xs font-semibold text-slate-700 mb-1">Required On *</label><input type="date" id="adv-required-date" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl"></div>
+            <div><label class="block text-xs font-semibold text-slate-700 mb-1">Repayment *</label><select id="adv-repayment-method" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl"><option value="Salary Deduction">Salary Deduction</option><option value="Bank Transfer">Bank Transfer</option><option value="Cash">Cash</option></select></div>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow">Submit Advance Application</button>
+        </form>
+      </div>
+
+      <!-- Past History -->
+      <div class="space-y-2">
+        <h4 class="text-xs font-bold text-slate-600 uppercase">My Advance Applications</h4>
+        <div id="adv-history-list" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- 5. ATTENDANCE HISTORY SECTION -->
+    <section id="section-history" class="hidden w-full space-y-4">
+      <div class="flex items-center justify-between">
+        <button onclick="showSection('section-dashboard')" class="text-xs text-slate-600 font-semibold px-3 py-1.5 rounded-lg bg-slate-200">← Back</button>
+        <span class="text-xs font-bold uppercase text-slate-700">Attendance Log</span>
+      </div>
+      <div id="attendance-log-list" class="space-y-2"></div>
+    </section>
+
+    <!-- 6. ADMIN DASHBOARD SECTION -->
+    <section id="section-admin" class="hidden w-full space-y-4">
+      <div class="flex items-center justify-between">
+        <button onclick="showSection('section-dashboard')" class="text-xs text-slate-600 font-semibold px-3 py-1.5 rounded-lg bg-slate-200">← Dashboard</button>
+        <span class="text-xs font-bold text-slate-800 uppercase">Company Admin</span>
+      </div>
+
+      <!-- Admin Stat Grid -->
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm"><p class="text-[10px] text-slate-500 font-medium">Total Staff</p><p id="adm-total-emp" class="text-sm font-bold text-slate-800 mt-1">0</p></div>
+        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200 shadow-sm"><p class="text-[10px] text-emerald-700 font-medium">Present</p><p id="adm-present-today" class="text-sm font-bold text-emerald-700 mt-1">0</p></div>
+        <div class="bg-rose-50 p-3 rounded-xl border border-rose-200 shadow-sm"><p class="text-[10px] text-rose-700 font-medium">Absent</p><p id="adm-absent-today" class="text-sm font-bold text-rose-700 mt-1">0</p></div>
+        <div class="col-span-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex justify-around">
+          <div><p class="text-[10px] text-slate-500">Disbursed Advances</p><p id="adm-disbursed" class="text-xs font-bold text-slate-800">₹0</p></div>
+          <div class="border-r border-slate-200"></div>
+          <div><p class="text-[10px] text-slate-500">Outstanding Balance</p><p id="adm-outstanding" class="text-xs font-bold text-rose-600">₹0</p></div>
+        </div>
+      </div>
+
+      <!-- Pending Advances Action Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+        <h4 class="font-bold text-xs uppercase text-slate-700">Pending Advance Approvals</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 text-[10px] text-slate-400 font-bold uppercase">
+                <th class="py-2 px-3">Employee</th>
+                <th class="py-2 px-3">Amount</th>
+                <th class="py-2 px-3">Purpose</th>
+                <th class="py-2 px-3">Date</th>
+                <th class="py-2 px-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adm-advance-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Live Attendance Stream -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+        <h4 class="font-bold text-xs uppercase text-slate-700">Live Attendance Records</h4>
+        <div id="adm-attendance-logs" class="space-y-2 max-h-80 overflow-y-auto"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Global Loader Modal -->
+  <div id="global-loader" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div class="bg-white p-5 rounded-2xl shadow-xl flex items-center space-x-3">
+      <div class="w-6 h-6 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <span id="loader-text" class="text-xs font-semibold text-slate-700">Processing...</span>
+    </div>
   </div>
 
+  <!-- Application Logic Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/attendance.js"></script>
+  <script src="js/advance.js"></script>
+  <script src="js/admin.js"></script>
+
   <script>
-    // 👇👇 ⚠️ इस लाइन में अपना Google Apps Script Web App URL डालें 👇👇
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVHs3gdNe2qvumCUEmrhHIH7Z8Qz4g5NuJ8VDnccAM1YnqF-tVNme9ZviqC4QEu290/exec";
+    // Navigation & Common UI Helpers
+    function showSection(targetId) {
+      const sections = ['section-login', 'section-dashboard', 'section-attendance', 'section-advance', 'section-history', 'section-admin'];
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden', id !== targetId);
+      });
+      document.getElementById('global-header').classList.toggle('hidden', targetId === 'section-login');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-    let html5QrCode = null;
-    let scannedQRData = null;
-    let selfieBase64Data = null;
-    let frontStream = null;
+    function showLoader(msg = "Processing...") {
+      document.getElementById('loader-text').innerText = msg;
+      document.getElementById('global-loader').classList.remove('hidden');
+    }
 
-    function setStatus(msg, type) {
-      const box = document.getElementById("status-box");
-      box.className = "status-" + type;
+    function hideLoader() {
+      document.getElementById('global-loader').classList.add('hidden');
+    }
+
+    function showToast(msg, type = "info") {
+      const box = document.getElementById('toast-box');
       box.innerText = msg;
+      box.className = `fixed top-4 left-1/2 -translate-x-1/2 w-11/12 max-w-sm z-50 p-3 rounded-xl shadow-xl text-xs font-semibold flex items-center justify-between ${
+        type === "success" ? "bg-emerald-600 text-white" : type === "error" ? "bg-rose-600 text-white" : "bg-slate-800 text-white"
+      }`;
+      box.classList.remove('hidden');
+      setTimeout(() => box.classList.add('hidden'), 3500);
     }
 
-    function clearStatus() {
-      document.getElementById("status-box").style.display = "none";
+    function cancelAttendanceFlow() {
+      stopAllCameras();
+      showSection('section-dashboard');
     }
 
-    // Step 1: Open Back Camera for QR Code
-    function startQRStep() {
-      const id = document.getElementById("emp-id").value.trim();
-      const name = document.getElementById("emp-name").value.trim();
-      const gmail = document.getElementById("emp-gmail").value.trim();
-
-      if (!id || !name || !gmail) {
-        setStatus("कृपया ID, नाम और Gmail तीनों भरें!", "error");
-        return;
-      }
-
-      clearStatus();
-      document.getElementById("section-form").classList.add("hidden");
-      document.getElementById("section-qr").classList.remove("hidden");
-      document.getElementById("step-txt").innerText = "चरण 2: QR Code को स्कैन करें";
-
-      html5QrCode = new Html5Qrcode("reader");
-      html5QrCode.start(
-        { facingMode: "environment" }, // Rear Camera
-        { fps: 10, qrbox: { width: 240, height: 240 } },
-        onQRSuccess
-      ).catch(err => {
-        setStatus("कैमरा नहीं खुला: " + err + "। कृपया ब्राउज़र में Camera Allow करें।", "error");
-      });
+    function loadEmployeeDashboard() {
+      document.getElementById('dash-emp-id').innerText = currentUser.employeeId || currentUser.loginId;
+      document.getElementById('dash-emp-name').innerText = currentUser.employeeName;
+      document.getElementById('dash-emp-desig').innerText = currentUser.designation;
+      document.getElementById('dash-emp-dept').innerText = currentUser.department;
+      document.getElementById('dash-emp-loc').innerText = `📍 ${currentUser.location}`;
     }
 
-    function onQRSuccess(decodedText) {
-      scannedQRData = decodedText;
-      html5QrCode.stop().then(() => {
-        document.getElementById("reader").innerHTML = "";
-        document.getElementById("section-qr").classList.add("hidden");
-        startSelfieStep();
-      });
-    }
-
-    // Step 2: Open Front Camera for Selfie
-    async function startSelfieStep() {
-      document.getElementById("section-selfie").classList.remove("hidden");
-      document.getElementById("selfie-wrapper").style.display = "block";
-      document.getElementById("step-txt").innerText = "चरण 3: अपनी लाइव सेल्फी खींचें";
-      setStatus("सामने देखकर फोटो खीचें", "info");
-
-      try {
-        frontStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
-          audio: false
-        });
-        const video = document.getElementById("selfie-video");
-        video.srcObject = frontStream;
-        video.play();
-      } catch (err) {
-        setStatus("सेल्फी कैमरा नहीं खुल सका: " + err.message, "error");
-      }
-    }
-
-    function takeSelfie() {
-      const video = document.getElementById("selfie-video");
-      const canvas = document.getElementById("selfie-canvas");
-      canvas.width = 400;
-      canvas.height = 300;
-      const ctx = canvas.getContext("2d");
-
-      // Mirror flip matching front camera
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      selfieBase64Data = canvas.toDataURL("image/jpeg", 0.7);
-
-      // Stop video stream
-      if (frontStream) {
-        frontStream.getTracks().forEach(t => t.stop());
-        frontStream = null;
-      }
-
-      video.style.display = "none";
-      const preview = document.getElementById("selfie-preview");
-      preview.src = selfieBase64Data;
-      preview.style.display = "block";
-
-      document.getElementById("snap-btn").classList.add("hidden");
-      document.getElementById("submit-btn").classList.remove("hidden");
-      setStatus("सेल्फी ले ली गई है। अब उपस्थिति दर्ज करें बटन दबाएं।", "success");
-    }
-
-    // Step 3: Capture Live GPS & Post Data to Google Sheet
-    function getGPSAndSubmitAttendance() {
-      setStatus("Live GPS लोकेशन प्राप्त की जा रही है...", "info");
-      document.getElementById("submit-btn").disabled = true;
-
-      if (!navigator.geolocation) {
-        setStatus("इस डिवाइस में GPS सपोर्ट नहीं है।", "error");
-        document.getElementById("submit-btn").disabled = false;
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          setStatus("डाटा और फोटो Google Drive/Sheets में भेजा जा रहा है...", "info");
-
-          const payload = {
-            loginId: document.getElementById("emp-id").value.trim(),
-            employeeName: document.getElementById("emp-name").value.trim(),
-            gmail: document.getElementById("emp-gmail").value.trim(),
-            qrCodeData: scannedQRData,
-            liveLat: pos.coords.latitude,
-            liveLng: pos.coords.longitude,
-            selfieBase64: selfieBase64Data
-          };
-
-          fetch(SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify(payload)
-          })
-          .then(res => res.json())
-          .then(res => {
-            if (res.success) {
-              setStatus("✔ " + res.message, "success");
-              document.getElementById("submit-btn").classList.add("hidden");
-              document.getElementById("step-txt").innerText = "उपस्थिति पूरी हुई!";
-            } else {
-              setStatus("❌ " + res.message, "error");
-              document.getElementById("submit-btn").disabled = false;
-            }
-          })
-          .catch(err => {
-            setStatus("सर्वर त्रुटि: " + err, "error");
-            document.getElementById("submit-btn").disabled = false;
+    function loadAttendanceHistoryView() {
+      showSection('section-history');
+      showLoader("Loading attendance logs...");
+      callBackendAPI("GET_ATTENDANCE_HISTORY", { employeeId: currentUser.employeeId })
+        .then(res => {
+          hideLoader();
+          const list = document.getElementById('attendance-log-list');
+          list.innerHTML = "";
+          if (!res.records || res.records.length === 0) {
+            list.innerHTML = `<p class="text-xs text-slate-400 py-6 text-center">No attendance logs available.</p>`;
+            return;
+          }
+          res.records.forEach(r => {
+            const card = document.createElement('div');
+            card.className = "bg-white p-3.5 rounded-xl border border-slate-200 flex items-center justify-between text-xs";
+            card.innerHTML = `
+              <div>
+                <div class="font-bold text-slate-800">${r.date} <span class="font-normal text-slate-400 text-[10px]">(${r.time})</span></div>
+                <div class="text-[11px] text-slate-500 mt-0.5">📍 ${r.location}</div>
+              </div>
+              <div class="text-right">
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold ${r.punchType === 'IN' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">${r.punchType}</span>
+                <div class="text-[10px] text-emerald-600 font-semibold mt-1">${r.status}</div>
+              </div>
+            `;
+            list.appendChild(card);
           });
-        },
-        err => {
-          setStatus("GPS बंद है! फोन सेटिंग में Location चालू करें।", "error");
-          document.getElementById("submit-btn").disabled = false;
-        },
-        { enableHighAccuracy: true, timeout: 12000 }
-      );
-    }
-
-    function resetAll() {
-      if (html5QrCode) {
-        try { html5QrCode.stop(); } catch(e){}
-      }
-      if (frontStream) {
-        frontStream.getTracks().forEach(t => t.stop());
-      }
-      location.reload();
+        })
+        .catch(err => {
+          hideLoader();
+          showToast("History Load Error: " + err.message, "error");
+        });
     }
   </script>
 </body>
